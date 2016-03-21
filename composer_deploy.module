@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @param array $info
+ * @param \Drupal\Core\Extension\Extension $file
+ * @param $type
+ */
+function composer_deploy_system_info_alter(array &$info, \Drupal\Core\Extension\Extension $file, $type) {
+  $handler = &drupal_static(__FUNCTION__);
+
+  if (!isset($handler)) {
+    $handler = \Drupal\composer_deploy\ComposerDeployHandler::fromAutoloader();
+  }
+
+  if (empty($info['version'])) {
+    $project = basename($file->getFilename(), '.info.yml');
+    $package = $handler->getPackage($project);
+    if ($package) {
+      $info['project'] = $project;
+      $info['datestamp'] = strtotime($package['time']);
+      if (substr($package['version'], 0, 4) == 'dev-') {
+        $info['version'] = substr($package['version'], 4) . '-dev';
+      }
+      else {
+        /**
+         * @todo: Handle mode version constraints.
+         */
+        $info['version'] = 'dev';
+      }
+    }
+  }
+}
