@@ -7,14 +7,13 @@
 
 namespace Drupal\composer_deploy;
 
-use ReflectionClass;
-
 class ComposerDeployHandler {
 
-  protected $packages;
+  protected $packages = [];
 
   public function __construct($path) {
-    $this->packages = json_decode(file_get_contents($path), TRUE);
+    $packages = json_decode(file_get_contents($path), TRUE);
+    $this->packages = is_array($packages) ? $packages : [];
   }
 
   public function getPackage($projectName) {
@@ -26,10 +25,7 @@ class ComposerDeployHandler {
     return FALSE;
   }
 
-  public static function fromAutoloader() {
-    $autoloader = require \Drupal::root() . '/autoload.php';
-    $reflector = new ReflectionClass($autoloader);
-    $vendor_dir = dirname(dirname($reflector->getFileName()));
+  public static function fromVendorDir($vendor_dir) {
     return new static($vendor_dir . '/composer/installed.json');
   }
 
